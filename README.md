@@ -45,11 +45,15 @@ A modern quiz application built with React, Vite, and Cloudflare Workers, featur
    Copy the database ID from the output.
 
 4. **Update Database Configuration**
-   Edit `wrangler.jsonc` and replace `"your-database-id-here"` with your actual database ID.
+   Edit `wrangler.jsonc` and replace the database ID with your actual database ID.
 
-5. **Initialize Database**
+5. **Run Database Migrations**
    ```bash
-   npm run setup-db
+   # Apply migrations locally for development
+   npx wrangler d1 migrations apply ai-literacy-quiz-db --local
+   
+   # Apply migrations to remote database for production
+   npx wrangler d1 migrations apply ai-literacy-quiz-db --remote
    ```
 
 6. **Deploy to Cloudflare**
@@ -66,14 +70,37 @@ npm run dev
 
 ### Database Management
 
+**Run migrations:**
+```bash
+# Local development
+npx wrangler d1 migrations apply ai-literacy-quiz-db --local
+
+# Production
+npx wrangler d1 migrations apply ai-literacy-quiz-db --remote
+```
+
 **View database contents:**
 ```bash
-npx wrangler d1 execute ai-literacy-quiz-db --command="SELECT * FROM questions;"
+npx wrangler d1 execute ai-literacy-quiz-db --command="SELECT * FROM questions;" --local
 ```
 
 **Add new questions:**
 ```bash
-npx wrangler d1 execute ai-literacy-quiz-db --command="INSERT INTO questions (question, option_a, option_b, option_c, option_d, correct_answer) VALUES ('Your question here?', 'Option A', 'Option B', 'Option C', 'Option D', 0);"
+npx wrangler d1 execute ai-literacy-quiz-db --command="INSERT INTO questions (question, option_a, option_b, option_c, option_d, correct_answer) VALUES ('Your question here?', 'Option A', 'Option B', 'Option C', 'Option D', 0);" --local
+```
+
+### Creating New Migrations
+
+To add new database changes, create a new migration file in the `migrations/` directory:
+
+```bash
+# Example: migrations/0003_add_categories.sql
+ALTER TABLE questions ADD COLUMN category TEXT DEFAULT 'general';
+```
+
+Then apply it with:
+```bash
+npx wrangler d1 migrations apply ai-literacy-quiz-db --local
 ```
 
 ## Database Schema
