@@ -301,24 +301,66 @@ function App() {
               </p>
             </div>
 
-            <div className="space-y-2">
-              {results.percentage >= 80 && (
-                <p className="text-green-600 font-semibold text-lg">🎉 Excellent work!</p>
+            {/* AI Avenue Episode Recommendations */}
+            <div className="mt-8 p-6 bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl border-2 border-purple-200">
+              {results.correctAnswers <= 2 && (
+                <div className="text-left space-y-3">
+                  <h3 className="text-2xl font-bold text-purple-800">0–2 Correct: The AI Vibe Check Begins</h3>
+                  <p className="text-purple-700">
+                    You're not behind. You're just early. AI Avenue is like Google Translate for AI concepts—with jokes. 
+                    Start with <span className="font-semibold text-blue-600 hover:text-blue-800 cursor-pointer underline">"Voice"</span> or <span className="font-semibold text-blue-600 hover:text-blue-800 cursor-pointer underline">"Vision"</span>.
+                  </p>
+                </div>
               )}
-              {results.percentage >= 60 && results.percentage < 80 && (
-                <p className="text-yellow-600 font-semibold text-lg">👍 Good job!</p>
+              
+              {results.correctAnswers >= 3 && results.correctAnswers <= 5 && (
+                <div className="text-left space-y-3">
+                  <h3 className="text-2xl font-bold text-purple-800">3–5 Correct: The Curious Collaborator</h3>
+                  <p className="text-purple-700">
+                    You're getting there. These episodes will boost your confidence while keeping things weird and accessible. 
+                    We suggest <span className="font-semibold text-blue-600 hover:text-blue-800 cursor-pointer underline">"Thinking"</span> or <span className="font-semibold text-blue-600 hover:text-blue-800 cursor-pointer underline">"Touch"</span>.
+                  </p>
+                </div>
               )}
-              {results.percentage < 60 && (
-                <p className="text-orange-600 font-semibold text-lg">💡 Keep learning!</p>
+              
+              {results.correctAnswers >= 6 && results.correctAnswers <= 8 && (
+                <div className="text-left space-y-3">
+                  <h3 className="text-2xl font-bold text-purple-800">6–8 Correct: The Prompt-Savvy Practitioner</h3>
+                  <p className="text-purple-700">
+                    You know what's real, what's hype, and you're ready to build. This show fills in context and shows how it works in the wild. 
+                    Try <span className="font-semibold text-blue-600 hover:text-blue-800 cursor-pointer underline">"Learning & Creativity"</span>.
+                  </p>
+                </div>
+              )}
+              
+              {results.correctAnswers >= 9 && (
+                <div className="text-left space-y-3">
+                  <h3 className="text-2xl font-bold text-purple-800">9–10 Correct: You Might Be a Model!</h3>
+                  <p className="text-purple-700">
+                    Impressive. You might already be running on fine-tuned parameters. But have you watched a robot hand host trivia? 
+                    Didn't think so. Join us on <span className="font-semibold text-blue-600 hover:text-blue-800 cursor-pointer underline">AI Avenue</span>.
+                  </p>
+                </div>
               )}
             </div>
 
-            <button
-              onClick={resetQuiz}
-              className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-4 px-8 rounded-2xl text-xl transition-all duration-200 transform hover:scale-105"
-            >
-              Take Quiz Again
-            </button>
+            <div className="flex flex-col space-y-4 mt-6">
+              <button
+                onClick={resetQuiz}
+                className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-semibold py-4 px-8 rounded-2xl text-xl transition-all duration-200 transform hover:scale-105 shadow-lg"
+              >
+                Take Quiz Again
+              </button>
+              
+              <a
+                href="https://www.youtube.com/@AI-Avenue"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-2xl text-lg transition-all duration-200 transform hover:scale-105 shadow-lg text-center"
+              >
+                Watch AI Avenue →
+              </a>
+            </div>
           </div>
         )}
       </div>
