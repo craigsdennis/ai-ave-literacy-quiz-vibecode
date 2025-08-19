@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './App.css'
 import type { Question } from '../worker/index'
 
@@ -18,8 +18,22 @@ interface AnswerDetail {
 }
 
 interface StartQuizResponse {
-  started: boolean;
-  totalQuestions: number;
+  started?: boolean;
+  totalQuestions?: number;
+  sessionId?: string;
+  error?: string;
+  canResume?: boolean;
+}
+
+interface SessionStatusResponse {
+  hasActiveSession: boolean;
+  sessionId?: string;
+  currentQuestionIndex?: number;
+  totalQuestions?: number;
+  answeredQuestions?: number;
+  completed?: boolean;
+  canResume?: boolean;
+  startTime?: number;
 }
 
 interface QuestionResponse {
@@ -55,20 +69,76 @@ function App() {
   const [quizCompleted, setQuizCompleted] = useState(false);
   const [results, setResults] = useState<QuizResults | null>(null);
   const [loading, setLoading] = useState(false);
+  const [hasExistingSession, setHasExistingSession] = useState(false);
+  const [sessionStatus, setSessionStatus] = useState<SessionStatusResponse | null>(null);
 
-  const startQuiz = async () => {
+  // Check for existing session on component mount
+  useEffect(() => {
+    checkExistingSession();
+  }, []);
+
+  const checkExistingSession = async () => {
+    try {
+      const response = await fetch('/api/quiz/session', {
+        credentials: 'include'
+      });
+      const data: SessionStatusResponse = await response.json();
+      setSessionStatus(data);
+      setHasExistingSession(data.hasActiveSession);
+      
+      if (data.hasActiveSession && data.canResume) {
+        setTotalQuestions(data.totalQuestions || 0);
+        setCurrentQuestionNumber((data.currentQuestionIndex || 0) + 1);
+      }
+    } catch (error) {
+      console.error('Error checking existing session:', error);
+    }
+  };
+
+  const startQuiz = async (force = false) => {
     setLoading(true);
     try {
-      const response = await fetch('/api/quiz/start', {
+      const endpoint = force ? '/api/quiz/start/force' : '/api/quiz/start';
+      const response = await fetch(endpoint, {
         method: 'POST',
         credentials: 'include'
       });
+      
+      if (!response.ok) {
+        const errorData: StartQuizResponse = await response.json();
+        if (errorData.canResume) {
+          // There's an existing session that can be resumed
+          setHasExistingSession(true);
+          setSessionStatus({
+            hasActiveSession: true,
+            sessionId: errorData.sessionId,
+            canResume: true
+          });
+          return;
+        }
+        throw new Error(errorData.error || 'Failed to start quiz');
+      }
+      
       const data: StartQuizResponse = await response.json();
-      setTotalQuestions(data.totalQuestions);
+      setTotalQuestions(data.totalQuestions || 0);
+      setHasExistingSession(false);
       await loadCurrentQuestion();
       setQuizState('question');
     } catch (error) {
       console.error('Error starting quiz:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resumeQuiz = async () => {
+    setLoading(true);
+    try {
+      await loadCurrentQuestion();
+      setQuizState('question');
+      setHasExistingSession(false);
+    } catch (error) {
+      console.error('Error resuming quiz:', error);
     } finally {
       setLoading(false);
     }
@@ -161,13 +231,41 @@ function App() {
           <div className="text-center space-y-8">
             <h1 className="text-4xl font-bold text-gray-800 mb-4">AI Literacy Quiz</h1>
             <p className="text-xl text-gray-600 mb-8">Test your knowledge about artificial intelligence</p>
-            <button
-              onClick={startQuiz}
-              disabled={loading}
-              className="bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-semibold py-4 px-8 rounded-2xl text-xl transition-all duration-200 transform hover:scale-105"
-            >
-              {loading ? 'Starting...' : 'Start Quiz'}
-            </button>
+            
+            {hasExistingSession && sessionStatus?.canResume ? (
+              <div className="space-y-4">
+                <p className="text-lg text-orange-600 mb-4">
+                  You have an existing quiz session in progress!
+                </p>
+                <p className="text-sm text-gray-600 mb-6">
+                  Progress: {sessionStatus.answeredQuestions || 0} of {sessionStatus.totalQuestions || 0} questions answered
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <button
+                    onClick={resumeQuiz}
+                    disabled={loading}
+                    className="bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-semibold py-3 px-6 rounded-2xl text-lg transition-all duration-200 transform hover:scale-105"
+                  >
+                    {loading ? 'Resuming...' : 'Resume Quiz'}
+                  </button>
+                  <button
+                    onClick={() => startQuiz(true)}
+                    disabled={loading}
+                    className="bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-semibold py-3 px-6 rounded-2xl text-lg transition-all duration-200 transform hover:scale-105"
+                  >
+                    {loading ? 'Starting...' : 'Start New Quiz'}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={() => startQuiz()}
+                disabled={loading}
+                className="bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-semibold py-4 px-8 rounded-2xl text-xl transition-all duration-200 transform hover:scale-105"
+              >
+                {loading ? 'Starting...' : 'Start Quiz'}
+              </button>
+            )}
           </div>
         )}
 

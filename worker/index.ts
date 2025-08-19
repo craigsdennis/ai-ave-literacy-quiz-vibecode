@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
-import { sessionMiddleware, CookieStore, Session } from 'hono-sessions';
+import { useSession } from '@hono/session';
+import type { SessionEnv } from '@hono/session';
 
 // Shared API types
 export interface Question {
@@ -52,31 +53,18 @@ interface QuizSessionResultRow {
   completed: boolean;
 }
 
-const app = new Hono<{ 
+const app = new Hono<SessionEnv & { 
   Bindings: Env;
-  Variables: {
-    session: Session;
-    session_key_rotation: boolean;
-  };
 }>();
 
 app.use('*', cors());
 
-const store = new CookieStore();
-
-app.use(
-  '*',
-  sessionMiddleware({
-    store,
-    encryptionKey: 'quiz-app-secret-key-change-in-production',
-    expireAfterSeconds: 900,
-    cookieOptions: {
-      sameSite: 'Lax',
-      secure: false,
-      httpOnly: true,
-    },
-  })
-);
+app.use('*', useSession({
+  secret: 'quiz-app-secret-key-change-in-production-32-bytes-long',
+  duration: {
+    absolute: 900, // 15 minutes
+  },
+}));
 
 // Helper function to get all questions from D1
 async function getAllQuestions(db: D1Database): Promise<QuestionWithAnswer[]> {
@@ -122,8 +110,136 @@ async function getQuestionCount(db: D1Database): Promise<number> {
   return result?.count || 0;
 }
 
+// Session status endpoint - check if there's an active quiz session
+app.get('/api/quiz/session', async (c) => {
+  const session = c.var.session;
+  const db = c.env.DB;
+  
+  try {
+    const sessionData = await session.get();
+    const quizSessionId = sessionData?.quizSessionId as string;
+    
+    if (!quizSessionId) {
+      return c.json({ hasActiveSession: false });
+    }
+    
+    // Check if the session exists in the database and get its status
+    const result = await db.prepare(`
+      SELECT current_question_index, answers, completed, start_time
+      FROM quiz_sessions 
+      WHERE id = ?
+    `).bind(quizSessionId).first<QuizSessionStateRow & { start_time: number }>();
+    
+    if (!result) {
+      // Session ID exists in cookie but not in database - clear it
+      await session.update({ quizSessionId: null });
+      return c.json({ hasActiveSession: false });
+    }
+    
+    const totalQuestions = await getQuestionCount(db);
+    const answers = JSON.parse(result.answers || '[]');
+    
+    return c.json({
+      hasActiveSession: true,
+      sessionId: quizSessionId,
+      currentQuestionIndex: result.current_question_index,
+      totalQuestions,
+      answeredQuestions: answers.length,
+      completed: result.completed,
+      startTime: result.start_time,
+      canResume: !result.completed && result.current_question_index < totalQuestions
+    });
+  } catch (error) {
+    console.error('Error checking session status:', error);
+    return c.json({ error: 'Failed to check session status' }, 500);
+  }
+});
+
+// Generate new session ID endpoint
+app.post('/api/quiz/new-session', async (c) => {
+  const session = c.var.session;
+  
+  try {
+    // Generate a new session ID
+    const newSessionId = crypto.randomUUID();
+    
+    // Update the session with the new ID (this will clear any existing quiz session)
+    await session.update({ quizSessionId: newSessionId, sessionGenerated: Date.now() });
+    
+    return c.json({ 
+      success: true,
+      sessionId: newSessionId,
+      message: 'New session generated' 
+    });
+  } catch (error) {
+    console.error('Error generating new session:', error);
+    return c.json({ error: 'Failed to generate new session' }, 500);
+  }
+});
+
 app.post('/api/quiz/start', async (c) => {
-  const session = c.get('session');
+  const session = c.var.session;
+  const db = c.env.DB;
+  
+  try {
+    const sessionData = await session.get();
+    const existingQuizSessionId = sessionData?.quizSessionId as string;
+    
+    // Check if there's already an active session
+    if (existingQuizSessionId) {
+      const existing = await db.prepare(`
+        SELECT current_question_index, completed 
+        FROM quiz_sessions 
+        WHERE id = ?
+      `).bind(existingQuizSessionId).first<{ current_question_index: number; completed: boolean }>();
+      
+      if (existing && !existing.completed) {
+        return c.json({ 
+          error: 'Active quiz session already exists',
+          canResume: true,
+          sessionId: existingQuizSessionId
+        }, 400);
+      }
+    }
+    
+    const totalQuestions = await getQuestionCount(db);
+    
+    const quizSession: QuizSession = {
+      id: crypto.randomUUID(),
+      currentQuestionIndex: 0,
+      answers: [],
+      startTime: Date.now(),
+      completed: false
+    };
+    
+    // Store session in D1
+    await db.prepare(`
+      INSERT INTO quiz_sessions (id, current_question_index, answers, start_time, completed)
+      VALUES (?, ?, ?, ?, ?)
+    `).bind(
+      quizSession.id,
+      quizSession.currentQuestionIndex,
+      JSON.stringify(quizSession.answers),
+      quizSession.startTime,
+      quizSession.completed
+    ).run();
+    
+    await session.update({ quizSessionId: quizSession.id });
+    
+    return c.json({ 
+      started: true,
+      sessionId: quizSession.id,
+      totalQuestions
+    });
+  } catch (error) {
+    console.error('Error starting quiz:', error);
+    return c.json({ error: 'Failed to start quiz' }, 500);
+  }
+});
+
+// Force start a new quiz (even if one exists)
+app.post('/api/quiz/start/force', async (c) => {
+  const session = c.var.session;
   const db = c.env.DB;
   
   try {
@@ -149,22 +265,25 @@ app.post('/api/quiz/start', async (c) => {
       quizSession.completed
     ).run();
     
-    session.set('quizSessionId', quizSession.id);
+    await session.update({ quizSessionId: quizSession.id });
     
     return c.json({ 
       started: true,
-      totalQuestions
+      sessionId: quizSession.id,
+      totalQuestions,
+      forced: true
     });
   } catch (error) {
-    console.error('Error starting quiz:', error);
-    return c.json({ error: 'Failed to start quiz' }, 500);
+    console.error('Error force starting quiz:', error);
+    return c.json({ error: 'Failed to force start quiz' }, 500);
   }
 });
 
 app.get('/api/quiz/question', async (c) => {
-  const session = c.get('session');
+  const session = c.var.session;
   const db = c.env.DB;
-  const quizSessionId = session.get('quizSessionId') as string;
+  const sessionData = await session.get();
+  const quizSessionId = sessionData?.quizSessionId as string;
   
   if (!quizSessionId) {
     return c.json({ error: 'No active quiz session' }, 404);
@@ -220,7 +339,7 @@ app.get('/api/quiz/question', async (c) => {
 });
 
 app.post('/api/quiz/answer', async (c) => {
-  const session = c.get('session');
+  const session = c.var.session;
   const db = c.env.DB;
   const body = await c.req.json();
   const { answer } = body;
@@ -229,7 +348,8 @@ app.post('/api/quiz/answer', async (c) => {
     return c.json({ error: 'Invalid answer format' }, 400);
   }
   
-  const quizSessionId = session.get('quizSessionId') as string;
+  const sessionData = await session.get();
+  const quizSessionId = sessionData?.quizSessionId as string;
   
   if (!quizSessionId) {
     return c.json({ error: 'No active quiz session' }, 404);
@@ -310,9 +430,10 @@ app.post('/api/quiz/answer', async (c) => {
 });
 
 app.get('/api/quiz/results', async (c) => {
-  const session = c.get('session');
+  const session = c.var.session;
   const db = c.env.DB;
-  const quizSessionId = session.get('quizSessionId') as string;
+  const sessionData = await session.get();
+  const quizSessionId = sessionData?.quizSessionId as string;
   
   if (!quizSessionId) {
     return c.json({ error: 'No quiz session found' }, 404);
