@@ -2,10 +2,15 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { sessionMiddleware, CookieStore, Session } from 'hono-sessions';
 
-interface Question {
+// Shared API types
+export interface Question {
   id: number;
   question: string;
   options: string[];
+}
+
+// Internal type with correctAnswer for server use
+interface QuestionWithAnswer extends Question {
   correctAnswer: number;
 }
 
@@ -17,8 +22,32 @@ interface QuizSession {
   completed: boolean;
 }
 
-interface Env {
-  DB: D1Database;
+// Database row types
+interface QuestionRow {
+  id: number;
+  question: string;
+  option_a: string;
+  option_b: string;
+  option_c: string;
+  option_d: string;
+  correct_answer: number;
+  created_at: string;
+}
+
+interface QuestionCountRow {
+  count: number;
+}
+
+interface QuizSessionStateRow {
+  current_question_index: number;
+  answers: string;
+  completed: boolean;
+}
+
+interface QuizSessionResultRow {
+  answers: string;
+  start_time: number;
+  completed: boolean;
 }
 
 const app = new Hono<{ 
@@ -48,45 +77,45 @@ app.use(
 );
 
 // Helper function to get all questions from D1
-async function getAllQuestions(db: D1Database): Promise<Question[]> {
+async function getAllQuestions(db: D1Database): Promise<QuestionWithAnswer[]> {
   const { results } = await db.prepare(`
     SELECT id, question, option_a, option_b, option_c, option_d, correct_answer 
     FROM questions 
     ORDER BY id
-  `).all();
+  `).all<QuestionRow>();
   
-  return results.map((row: any) => ({
-    id: row.id as number,
-    question: row.question as string,
-    options: [row.option_a, row.option_b, row.option_c, row.option_d] as string[],
-    correctAnswer: row.correct_answer as number
+  return results.map((row) => ({
+    id: row.id,
+    question: row.question,
+    options: [row.option_a, row.option_b, row.option_c, row.option_d],
+    correctAnswer: row.correct_answer
   }));
 }
 
 // Helper function to get a specific question by index
-async function getQuestionByIndex(db: D1Database, index: number): Promise<Question | null> {
+async function getQuestionByIndex(db: D1Database, index: number): Promise<QuestionWithAnswer | null> {
   const { results } = await db.prepare(`
     SELECT id, question, option_a, option_b, option_c, option_d, correct_answer 
     FROM questions 
     ORDER BY id 
     LIMIT 1 OFFSET ?
-  `).bind(index).all();
+  `).bind(index).all<QuestionRow>();
   
   if (results.length === 0) return null;
   
-  const row = results[0] as any;
+  const row = results[0];
   return {
-    id: row.id as number,
-    question: row.question as string,
-    options: [row.option_a, row.option_b, row.option_c, row.option_d] as string[],
-    correctAnswer: row.correct_answer as number
+    id: row.id,
+    question: row.question,
+    options: [row.option_a, row.option_b, row.option_c, row.option_d],
+    correctAnswer: row.correct_answer
   };
 }
 
 // Helper function to get total question count
 async function getQuestionCount(db: D1Database): Promise<number> {
-  const result = await db.prepare('SELECT COUNT(*) as count FROM questions').first();
-  return (result as any).count as number;
+  const result = await db.prepare('SELECT COUNT(*) as count FROM questions').first<QuestionCountRow>();
+  return result?.count || 0;
 }
 
 app.post('/api/quiz/start', async (c) => {
@@ -143,16 +172,16 @@ app.get('/api/quiz/question', async (c) => {
       SELECT current_question_index, answers, completed 
       FROM quiz_sessions 
       WHERE id = ?
-    `).bind(quizSessionId).first();
+    `).bind(quizSessionId).first<QuizSessionStateRow>();
     
     if (!result) {
       return c.json({ error: 'No active quiz session' }, 404);
     }
     
     const quizSession = {
-      currentQuestionIndex: (result as any).current_question_index as number,
-      answers: JSON.parse((result as any).answers || '[]'),
-      completed: (result as any).completed as boolean
+      currentQuestionIndex: result.current_question_index,
+      answers: JSON.parse(result.answers || '[]'),
+      completed: result.completed
     };
     
     if (quizSession.completed) {
@@ -208,16 +237,16 @@ app.post('/api/quiz/answer', async (c) => {
       SELECT current_question_index, answers, completed 
       FROM quiz_sessions 
       WHERE id = ?
-    `).bind(quizSessionId).first();
+    `).bind(quizSessionId).first<QuizSessionStateRow>();
     
     if (!result) {
       return c.json({ error: 'No active quiz session' }, 404);
     }
     
     const quizSession = {
-      currentQuestionIndex: (result as any).current_question_index as number,
-      answers: JSON.parse((result as any).answers || '[]'),
-      completed: (result as any).completed as boolean
+      currentQuestionIndex: result.current_question_index,
+      answers: JSON.parse(result.answers || '[]'),
+      completed: result.completed
     };
     
     if (quizSession.completed) {
@@ -277,18 +306,18 @@ app.get('/api/quiz/results', async (c) => {
       SELECT answers, start_time, completed 
       FROM quiz_sessions 
       WHERE id = ?
-    `).bind(quizSessionId).first();
+    `).bind(quizSessionId).first<QuizSessionResultRow>();
     
     if (!result) {
       return c.json({ error: 'No quiz session found' }, 404);
     }
     
-    if (!(result as any).completed) {
+    if (!result.completed) {
       return c.json({ error: 'Quiz not completed yet' }, 400);
     }
     
-    const answers = JSON.parse((result as any).answers || '[]');
-    const startTime = (result as any).start_time as number;
+    const answers = JSON.parse(result.answers || '[]');
+    const startTime = result.start_time;
     
     // Get all questions to calculate results
     const questions = await getAllQuestions(db);
