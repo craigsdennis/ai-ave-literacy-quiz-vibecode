@@ -1,17 +1,37 @@
 import { useState } from 'react'
 import './App.css'
-
-interface Question {
-  id: string;
-  question: string;
-  options: string[];
-}
+import type { Question } from '../worker/index'
 
 interface QuizResults {
   totalQuestions: number;
   correctAnswers: number;
   percentage: number;
   completionTime: number;
+  answers: AnswerDetail[];
+}
+
+interface AnswerDetail {
+  questionIndex: number;
+  userAnswer: number;
+  correctAnswer: number;
+  correct: boolean;
+}
+
+interface StartQuizResponse {
+  started: boolean;
+  totalQuestions: number;
+}
+
+interface QuestionResponse {
+  question: Question;
+  currentQuestion: number;
+  totalQuestions: number;
+}
+
+interface AnswerResponse {
+  success: boolean;
+  completed: boolean;
+  nextQuestion: number | null;
 }
 
 type QuizState = 'start' | 'question' | 'results';
@@ -32,7 +52,7 @@ function App() {
         method: 'POST',
         credentials: 'include'
       });
-      const data = await response.json();
+      const data: StartQuizResponse = await response.json();
       setTotalQuestions(data.totalQuestions);
       await loadCurrentQuestion();
       setQuizState('question');
@@ -48,7 +68,7 @@ function App() {
       const response = await fetch('/api/quiz/question', {
         credentials: 'include'
       });
-      const data = await response.json();
+      const data: QuestionResponse = await response.json();
       setCurrentQuestion(data.question);
       setCurrentQuestionNumber(data.currentQuestion);
       setTotalQuestions(data.totalQuestions);
@@ -72,7 +92,7 @@ function App() {
         body: JSON.stringify({ answer: selectedAnswer })
       });
       
-      const data = await response.json();
+      const data: AnswerResponse = await response.json();
       
       if (data.completed) {
         await loadResults();
@@ -91,7 +111,7 @@ function App() {
       const response = await fetch('/api/quiz/results', {
         credentials: 'include'
       });
-      const data = await response.json();
+      const data: QuizResults = await response.json();
       setResults(data);
       setQuizState('results');
     } catch (error) {
