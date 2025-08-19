@@ -9,9 +9,10 @@ export interface Question {
   options: string[];
 }
 
-// Internal type with correctAnswer for server use
+// Internal type with correctAnswer and explanation for server use
 interface QuestionWithAnswer extends Question {
   correctAnswer: number;
+  explanation: string;
 }
 
 interface QuizSession {
@@ -31,6 +32,7 @@ interface QuestionRow {
   option_c: string;
   option_d: string;
   correct_answer: number;
+  explanation: string;
   created_at: string;
 }
 
@@ -79,7 +81,7 @@ app.use(
 // Helper function to get all questions from D1
 async function getAllQuestions(db: D1Database): Promise<QuestionWithAnswer[]> {
   const { results } = await db.prepare(`
-    SELECT id, question, option_a, option_b, option_c, option_d, correct_answer 
+    SELECT id, question, option_a, option_b, option_c, option_d, correct_answer, explanation 
     FROM questions 
     ORDER BY id
   `).all<QuestionRow>();
@@ -88,14 +90,15 @@ async function getAllQuestions(db: D1Database): Promise<QuestionWithAnswer[]> {
     id: row.id,
     question: row.question,
     options: [row.option_a, row.option_b, row.option_c, row.option_d],
-    correctAnswer: row.correct_answer
+    correctAnswer: row.correct_answer,
+    explanation: row.explanation
   }));
 }
 
 // Helper function to get a specific question by index
 async function getQuestionByIndex(db: D1Database, index: number): Promise<QuestionWithAnswer | null> {
   const { results } = await db.prepare(`
-    SELECT id, question, option_a, option_b, option_c, option_d, correct_answer 
+    SELECT id, question, option_a, option_b, option_c, option_d, correct_answer, explanation 
     FROM questions 
     ORDER BY id 
     LIMIT 1 OFFSET ?
@@ -108,7 +111,8 @@ async function getQuestionByIndex(db: D1Database, index: number): Promise<Questi
     id: row.id,
     question: row.question,
     options: [row.option_a, row.option_b, row.option_c, row.option_d],
-    correctAnswer: row.correct_answer
+    correctAnswer: row.correct_answer,
+    explanation: row.explanation
   };
 }
 
@@ -259,6 +263,14 @@ app.post('/api/quiz/answer', async (c) => {
       return c.json({ error: 'No more questions' }, 400);
     }
     
+    // Get current question to provide feedback
+    const currentQuestion = await getQuestionByIndex(db, quizSession.currentQuestionIndex);
+    if (!currentQuestion) {
+      return c.json({ error: 'Current question not found' }, 404);
+    }
+    
+    const isCorrect = answer === currentQuestion.correctAnswer;
+    
     // Update answers and move to next question
     quizSession.answers.push(answer);
     quizSession.currentQuestionIndex++;
@@ -283,7 +295,13 @@ app.post('/api/quiz/answer', async (c) => {
     return c.json({
       success: true,
       completed: isCompleted,
-      nextQuestion: isCompleted ? null : quizSession.currentQuestionIndex + 1
+      nextQuestion: isCompleted ? null : quizSession.currentQuestionIndex + 1,
+      feedback: {
+        correct: isCorrect,
+        correctAnswer: currentQuestion.correctAnswer,
+        explanation: currentQuestion.explanation,
+        userAnswer: answer
+      }
     });
   } catch (error) {
     console.error('Error submitting answer:', error);
