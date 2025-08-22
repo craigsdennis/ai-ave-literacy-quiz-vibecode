@@ -487,7 +487,7 @@ function App() {
             </a>{' '}
             for{' '}
             <a 
-              href="https://aiave.show" 
+              href="https://aiavenue.show" 
               target="_blank" 
               rel="noopener noreferrer"
               className="text-[#4E46FF] hover:text-[#43388C] font-medium underline"
