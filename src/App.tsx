@@ -414,7 +414,7 @@ function App() {
                   <h3 className="text-2xl font-bold text-[#43388C]">0–2 Correct: The AI Vibe Check Begins</h3>
                   <p className="text-[#6B5B95]">
                     You're not behind. You're just early. AI Avenue is like Google Translate for AI concepts—with jokes. 
-                    Start with <span className="font-semibold text-[#50A2E7] hover:text-[#3D8BD4] cursor-pointer underline">"Voice"</span> or <span className="font-semibold text-[#50A2E7] hover:text-[#3D8BD4] cursor-pointer underline">"Vision"</span>.
+                    Start with <a href="https://aiavenue.show" target="_blank" rel="noopener noreferrer"><span className="font-semibold text-[#50A2E7] hover:text-[#3D8BD4] cursor-pointer underline">"Voice"</span></a> or <a href="https://aiavenue.show" target="_blank" rel="noopener noreferrer"><span className="font-semibold text-[#50A2E7] hover:text-[#3D8BD4] cursor-pointer underline">"Vision"</span></a>.
                   </p>
                 </div>
               )}
@@ -424,7 +424,7 @@ function App() {
                   <h3 className="text-2xl font-bold text-[#43388C]">3–5 Correct: The Curious Collaborator</h3>
                   <p className="text-[#6B5B95]">
                     You're getting there. These episodes will boost your confidence while keeping things weird and accessible. 
-                    We suggest <span className="font-semibold text-[#50A2E7] hover:text-[#3D8BD4] cursor-pointer underline">"Thinking"</span> or <span className="font-semibold text-[#50A2E7] hover:text-[#3D8BD4] cursor-pointer underline">"Touch"</span>.
+                    We suggest <a href="https://aiavenue.show" target="_blank" rel="noopener noreferrer"><span className="font-semibold text-[#50A2E7] hover:text-[#3D8BD4] cursor-pointer underline">"Thinking"</span></a> or <a href="https://aiavenue.show" target="_blank" rel="noopener noreferrer"><span className="font-semibold text-[#50A2E7] hover:text-[#3D8BD4] cursor-pointer underline">"Doing"</span></a>.
                   </p>
                 </div>
               )}
@@ -434,7 +434,7 @@ function App() {
                   <h3 className="text-2xl font-bold text-[#43388C]">6–8 Correct: The Prompt-Savvy Practitioner</h3>
                   <p className="text-[#6B5B95]">
                     You know what's real, what's hype, and you're ready to build. This show fills in context and shows how it works in the wild. 
-                    Try <span className="font-semibold text-[#50A2E7] hover:text-[#3D8BD4] cursor-pointer underline">"Learning & Creativity"</span>.
+                    Try <a href="https://aiavenue.show" target="_blank" rel="noopener noreferrer"><span className="font-semibold text-[#50A2E7] hover:text-[#3D8BD4] cursor-pointer underline">"Learning"</span></a>.
                   </p>
                 </div>
               )}
