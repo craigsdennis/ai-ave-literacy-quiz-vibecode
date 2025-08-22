@@ -19,6 +19,12 @@
 			"database_name": "ai-literacy-quiz-db",
 			"database_id": "11a8d5a7-6b56-42ba-bcf4-32b22efa4e85"
 		  }
+	],
+	"routes": [
+		{
+			"custom_domain": true,
+			"pattern": "quiz.aiavenue.show"
+		}
 	]
 	/**
 	 * Smart Placement

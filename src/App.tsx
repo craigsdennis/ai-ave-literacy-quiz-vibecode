@@ -474,25 +474,37 @@ function App() {
       
       {/* Sticky Footer */}
       <footer className="bg-white/95 backdrop-blur-sm border-t border-gray-200 py-4 px-6">
-        <div className="text-center text-sm text-gray-600">
-          Built with <span className="text-[#FF6B3D]">🧡</span> using{' '}
-          <a 
-            href="https://developers.cloudflare.com" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="text-[#50A2E7] hover:text-[#3D8BD4] font-medium underline"
-          >
-            Cloudflare Workers
-          </a>{' '}
-          for{' '}
-          <a 
-            href="https://aiave.show" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="text-[#4E46FF] hover:text-[#43388C] font-medium underline"
-          >
-            AI Avenue
-          </a>
+        <div className="text-center text-sm text-gray-600 space-y-2">
+          <div>
+            Built with <span className="text-[#FF6B3D]">🧡</span> using{' '}
+            <a 
+              href="https://developers.cloudflare.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-[#50A2E7] hover:text-[#3D8BD4] font-medium underline"
+            >
+              Cloudflare Workers
+            </a>{' '}
+            for{' '}
+            <a 
+              href="https://aiave.show" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-[#4E46FF] hover:text-[#43388C] font-medium underline"
+            >
+              AI Avenue
+            </a>
+          </div>
+          <div>
+            <a 
+              href="https://github.com/craigsdennis/ai-ave-literacy-quiz-vibecode" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-gray-500 hover:text-[#43388C] font-medium underline transition-colors duration-200"
+            >
+              👀 the code
+            </a>
+          </div>
         </div>
       </footer>
     </div>
