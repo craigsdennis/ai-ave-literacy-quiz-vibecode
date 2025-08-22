@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import './App.css'
 import type { Question } from '../worker/index'
+import aiAvenueLogo from './assets/ai-avenue-logo.svg'
 
 interface QuizResults {
   totalQuestions: number;
@@ -225,11 +226,18 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-500 to-orange-400 flex items-center justify-center p-4">
-      <div className="quiz-frame bg-white/90 backdrop-blur-sm rounded-3xl p-8 max-w-2xl w-full shadow-2xl">
+    <div className="min-h-screen bg-gradient-to-br from-[#4E46FF] via-[#4E60FF] to-[#FF6B3D] flex flex-col">
+      <div className="flex-1 flex items-center justify-center p-4">
+        <div className="quiz-frame bg-white/90 backdrop-blur-sm rounded-3xl p-8 max-w-2xl w-full shadow-2xl">
+          {/* Logo */}
+          <div className="text-center mb-8">
+            <a href="https://aiave.show" target="_blank" rel="noopener noreferrer" className="inline-block hover:scale-105 transition-transform duration-200">
+              <img src={aiAvenueLogo} alt="AI Avenue Logo" className="h-20 mx-auto" />
+            </a>
+          </div>
         {quizState === 'start' && (
           <div className="text-center space-y-8">
-            <h1 className="text-4xl font-bold text-gray-800 mb-4">AI Literacy Quiz</h1>
+            <h1 className="text-4xl font-bold text-[#43388C] mb-4">AI Avenue Literacy Quiz</h1>
             <p className="text-xl text-gray-600 mb-8">Test your knowledge about artificial intelligence</p>
             
             {hasExistingSession && sessionStatus?.canResume ? (
@@ -244,14 +252,14 @@ function App() {
                   <button
                     onClick={resumeQuiz}
                     disabled={loading}
-                    className="bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-semibold py-3 px-6 rounded-2xl text-lg transition-all duration-200 transform hover:scale-105"
+                    className="bg-[#50A2E7] hover:bg-[#3D8BD4] disabled:opacity-50 text-white font-semibold py-3 px-6 rounded-2xl text-lg transition-all duration-200 transform hover:scale-105"
                   >
                     {loading ? 'Resuming...' : 'Resume Quiz'}
                   </button>
                   <button
                     onClick={() => startQuiz(true)}
                     disabled={loading}
-                    className="bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-semibold py-3 px-6 rounded-2xl text-lg transition-all duration-200 transform hover:scale-105"
+                    className="bg-[#4E46FF] hover:bg-[#43388C] disabled:opacity-50 text-white font-semibold py-3 px-6 rounded-2xl text-lg transition-all duration-200 transform hover:scale-105"
                   >
                     {loading ? 'Starting...' : 'Start New Quiz'}
                   </button>
@@ -261,7 +269,7 @@ function App() {
               <button
                 onClick={() => startQuiz()}
                 disabled={loading}
-                className="bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-semibold py-4 px-8 rounded-2xl text-xl transition-all duration-200 transform hover:scale-105"
+                className="bg-[#4E46FF] hover:bg-[#43388C] disabled:opacity-50 text-white font-semibold py-4 px-8 rounded-2xl text-xl transition-all duration-200 transform hover:scale-105"
               >
                 {loading ? 'Starting...' : 'Start Quiz'}
               </button>
@@ -277,7 +285,7 @@ function App() {
               </div>
               <div className="w-48 bg-gray-200 rounded-full h-2">
                 <div 
-                  className="bg-purple-600 h-2 rounded-full transition-all duration-300"
+                  className="bg-gradient-to-r from-[#4E46FF] to-[#FF6B3D] h-2 rounded-full transition-all duration-300"
                   style={{ width: `${(currentQuestionNumber / totalQuestions) * 100}%` }}
                 ></div>
               </div>
@@ -301,7 +309,7 @@ function App() {
                         ? 'border-red-500 bg-red-50 text-red-700'
                         : 'border-gray-200 bg-gray-50 text-gray-500'
                       : selectedAnswer === index
-                      ? 'border-purple-600 bg-purple-50 text-purple-700'
+                      ? 'border-[#4E46FF] bg-[#F7F6FE] text-[#43388C]'
                       : 'border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50'
                   }`}
                 >
@@ -314,7 +322,7 @@ function App() {
                           ? 'border-red-500 bg-red-500'
                           : 'border-gray-300 bg-gray-100'
                         : selectedAnswer === index
-                        ? 'border-purple-600 bg-purple-600'
+                        ? 'border-[#4E46FF] bg-[#4E46FF]'
                         : 'border-gray-300'
                     }`}>
                       {showingFeedback && feedback ? (
@@ -367,14 +375,14 @@ function App() {
                 <button
                   onClick={submitAnswer}
                   disabled={selectedAnswer === null || loading}
-                  className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow-lg"
+                  className="bg-gradient-to-r from-[#4E46FF] to-[#43388C] hover:from-[#43388C] hover:to-[#3D2F7A] disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow-lg"
                 >
                   {loading ? 'Submitting...' : 'Submit Answer'}
                 </button>
               ) : (
                 <button
                   onClick={continueToNext}
-                  className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow-lg"
+                  className="bg-gradient-to-r from-[#50A2E7] to-[#3D8BD4] hover:from-[#3D8BD4] hover:to-[#2A74C1] text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow-lg"
                 >
                   {quizCompleted ? 'See Results →' : 'Continue →'}
                 </button>
@@ -387,8 +395,8 @@ function App() {
           <div className="text-center space-y-8">
             <h1 className="text-4xl font-bold text-gray-800 mb-4">Quiz Complete!</h1>
             
-            <div className="bg-gradient-to-r from-purple-100 to-blue-100 rounded-2xl p-8 space-y-4">
-              <div className="text-6xl font-bold text-purple-600 mb-2">
+            <div className="bg-gradient-to-r from-[#F7F6FE] to-[#F0F8FF] rounded-2xl p-8 space-y-4">
+              <div className="text-6xl font-bold text-[#4E46FF] mb-2">
                 {results.percentage}%
               </div>
               <p className="text-xl text-gray-700">
@@ -400,43 +408,43 @@ function App() {
             </div>
 
             {/* AI Avenue Episode Recommendations */}
-            <div className="mt-8 p-6 bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl border-2 border-purple-200">
+            <div className="mt-8 p-6 bg-gradient-to-r from-[#F7F6FE] to-[#F0F8FF] rounded-2xl border-2 border-[#B8B3E8]">
               {results.correctAnswers <= 2 && (
                 <div className="text-left space-y-3">
-                  <h3 className="text-2xl font-bold text-purple-800">0–2 Correct: The AI Vibe Check Begins</h3>
-                  <p className="text-purple-700">
+                  <h3 className="text-2xl font-bold text-[#43388C]">0–2 Correct: The AI Vibe Check Begins</h3>
+                  <p className="text-[#6B5B95]">
                     You're not behind. You're just early. AI Avenue is like Google Translate for AI concepts—with jokes. 
-                    Start with <span className="font-semibold text-blue-600 hover:text-blue-800 cursor-pointer underline">"Voice"</span> or <span className="font-semibold text-blue-600 hover:text-blue-800 cursor-pointer underline">"Vision"</span>.
+                    Start with <span className="font-semibold text-[#50A2E7] hover:text-[#3D8BD4] cursor-pointer underline">"Voice"</span> or <span className="font-semibold text-[#50A2E7] hover:text-[#3D8BD4] cursor-pointer underline">"Vision"</span>.
                   </p>
                 </div>
               )}
               
               {results.correctAnswers >= 3 && results.correctAnswers <= 5 && (
                 <div className="text-left space-y-3">
-                  <h3 className="text-2xl font-bold text-purple-800">3–5 Correct: The Curious Collaborator</h3>
-                  <p className="text-purple-700">
+                  <h3 className="text-2xl font-bold text-[#43388C]">3–5 Correct: The Curious Collaborator</h3>
+                  <p className="text-[#6B5B95]">
                     You're getting there. These episodes will boost your confidence while keeping things weird and accessible. 
-                    We suggest <span className="font-semibold text-blue-600 hover:text-blue-800 cursor-pointer underline">"Thinking"</span> or <span className="font-semibold text-blue-600 hover:text-blue-800 cursor-pointer underline">"Touch"</span>.
+                    We suggest <span className="font-semibold text-[#50A2E7] hover:text-[#3D8BD4] cursor-pointer underline">"Thinking"</span> or <span className="font-semibold text-[#50A2E7] hover:text-[#3D8BD4] cursor-pointer underline">"Touch"</span>.
                   </p>
                 </div>
               )}
               
               {results.correctAnswers >= 6 && results.correctAnswers <= 8 && (
                 <div className="text-left space-y-3">
-                  <h3 className="text-2xl font-bold text-purple-800">6–8 Correct: The Prompt-Savvy Practitioner</h3>
-                  <p className="text-purple-700">
+                  <h3 className="text-2xl font-bold text-[#43388C]">6–8 Correct: The Prompt-Savvy Practitioner</h3>
+                  <p className="text-[#6B5B95]">
                     You know what's real, what's hype, and you're ready to build. This show fills in context and shows how it works in the wild. 
-                    Try <span className="font-semibold text-blue-600 hover:text-blue-800 cursor-pointer underline">"Learning & Creativity"</span>.
+                    Try <span className="font-semibold text-[#50A2E7] hover:text-[#3D8BD4] cursor-pointer underline">"Learning & Creativity"</span>.
                   </p>
                 </div>
               )}
               
               {results.correctAnswers >= 9 && (
                 <div className="text-left space-y-3">
-                  <h3 className="text-2xl font-bold text-purple-800">9–10 Correct: You Might Be a Model!</h3>
-                  <p className="text-purple-700">
+                  <h3 className="text-2xl font-bold text-[#43388C]">9–10 Correct: You Might Be a Model!</h3>
+                  <p className="text-[#6B5B95]">
                     Impressive. You might already be running on fine-tuned parameters. But have you watched a robot hand host trivia? 
-                    Didn't think so. Join us on <span className="font-semibold text-blue-600 hover:text-blue-800 cursor-pointer underline">AI Avenue</span>.
+                    Didn't think so. Join us on <span className="font-semibold text-[#50A2E7] hover:text-[#3D8BD4] cursor-pointer underline">AI Avenue</span>.
                   </p>
                 </div>
               )}
@@ -445,7 +453,7 @@ function App() {
             <div className="flex flex-col space-y-4 mt-6">
               <button
                 onClick={resetQuiz}
-                className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-semibold py-4 px-8 rounded-2xl text-xl transition-all duration-200 transform hover:scale-105 shadow-lg"
+                className="bg-gradient-to-r from-[#4E46FF] to-[#43388C] hover:from-[#43388C] hover:to-[#3D2F7A] text-white font-semibold py-4 px-8 rounded-2xl text-xl transition-all duration-200 transform hover:scale-105 shadow-lg"
               >
                 Take Quiz Again
               </button>
@@ -454,14 +462,39 @@ function App() {
                 href="https://www.youtube.com/@AI-Avenue"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-2xl text-lg transition-all duration-200 transform hover:scale-105 shadow-lg text-center"
+                className="bg-gradient-to-r from-[#50A2E7] to-[#3D8BD4] hover:from-[#3D8BD4] hover:to-[#2A74C1] text-white font-semibold py-3 px-6 rounded-2xl text-lg transition-all duration-200 transform hover:scale-105 shadow-lg text-center"
               >
                 Watch AI Avenue →
               </a>
             </div>
           </div>
         )}
+        </div>
       </div>
+      
+      {/* Sticky Footer */}
+      <footer className="bg-white/95 backdrop-blur-sm border-t border-gray-200 py-4 px-6">
+        <div className="text-center text-sm text-gray-600">
+          Built with <span className="text-[#FF6B3D]">🧡</span> using{' '}
+          <a 
+            href="https://developers.cloudflare.com" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-[#50A2E7] hover:text-[#3D8BD4] font-medium underline"
+          >
+            Cloudflare Workers
+          </a>{' '}
+          for{' '}
+          <a 
+            href="https://aiave.show" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-[#4E46FF] hover:text-[#43388C] font-medium underline"
+          >
+            AI Avenue
+          </a>
+        </div>
+      </footer>
     </div>
   );
 }
