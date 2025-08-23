@@ -231,7 +231,7 @@ function App() {
         <div className="quiz-frame bg-white/90 backdrop-blur-sm rounded-3xl p-8 max-w-2xl w-full shadow-2xl">
           {/* Logo */}
           <div className="text-center mb-8">
-            <a href="https://aiave.show" target="_blank" rel="noopener noreferrer" className="inline-block hover:scale-105 transition-transform duration-200">
+            <a href="https://aiavenue.show" target="_blank" rel="noopener noreferrer" className="inline-block hover:scale-105 transition-transform duration-200">
               <img src={aiAvenueLogo} alt="AI Avenue Logo" className="h-20 mx-auto" />
             </a>
           </div>
