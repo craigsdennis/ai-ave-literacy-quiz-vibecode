@@ -459,7 +459,7 @@ function App() {
               </button>
               
               <a
-                href="https://www.youtube.com/@AI-Avenue"
+                href="https://aiavenue.show"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bg-gradient-to-r from-[#50A2E7] to-[#3D8BD4] hover:from-[#3D8BD4] hover:to-[#2A74C1] text-white font-semibold py-3 px-6 rounded-2xl text-lg transition-all duration-200 transform hover:scale-105 shadow-lg text-center"
